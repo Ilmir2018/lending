@@ -9,11 +9,43 @@ use App\Models\Portfolio;
 use App\Models\Service;
 use App\Models\People;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class IndexController extends Controller
 {
 
     public function execute(Request $request) {
+
+        if ($request->isMethod('post')) {
+
+            $messages = [
+                'required' => 'Поле :attribute обязательно к заполнению.',
+                'email' => 'Поле :attribute должно соответствовать email адресу.',
+            ];
+
+            $this->validate($request, [
+                'name' => 'required|max:255',
+                'email' => 'required|email',
+                'text' => 'required'
+            ], $messages);
+
+            $data = $request->all();
+
+            $result = Mail::send('site.email', ['data' => $data], function ($message) use ($data) {
+
+                $mail_admin = 'admin@admin.ru';
+                $message->from($data['email'], $data['name']);
+                $message->to($mail_admin, 'Mr. Admin')->subject('Question');
+
+            });
+
+            if ($result) {
+                session()->flash('status', 'Task was successful!');
+                return redirect()->route('home')->with('status', 'Email is send');
+            }
+
+
+        }
 
         $pages = Page::all();
         $portfolios = Portfolio::get(['name', 'filter', 'images']);
