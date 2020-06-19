@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-//Route::get('/', function () {
-//    return view('welcome');
-//});
 
 Route::group(['middleware' => 'web'], function () {
 
@@ -27,20 +24,30 @@ Route::group(['middleware' => 'web'], function () {
 
 Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
 
-
+    //admin
     Route::get('/', function () {
 
+        if (view()->exists('admin.index')) {
+            $data = ['title' => 'Панель администратора'];
+            return view('admin.index', ['data' => $data]);
+        }
 
     });
 
+    // admin/pages
     Route::group(['prefix' => 'pages'], function () {
 
         Route::get('/', ['uses' => 'PagesController@execute', 'as' => 'pages']);
-        Route::match(['get', 'post'], '/add', ['uses' => 'PagesAddController@execute', 'as' => 'pagesAdd']);
-        Route::match(['get', 'post', 'delete'], '/edit/{page}', ['uses' => 'PagesEditController@execute', 'as' => 'pagesEdit']);
+        Route::get('/add', ['uses' => 'PagesAddController@index', 'as' => 'pagesAdd']);
+        Route::post('/add', ['uses' => 'PagesAddController@add', 'as' => 'pagesAdd']);
+        Route::get('/edit/{page}', ['uses' => 'PagesEditController@index', 'as' => 'pagesEdit']);
+        Route::post('/edit/{page}', ['uses' => 'PagesEditController@add', 'as' => 'pagesEdit']);
+        Route::delete('/edit/{page}', ['uses' => 'PagesEditController@delete', 'as' => 'pagesDelete']);
+//        Route::match(['get', 'post', 'delete'], '/edit/{page}', ['uses' => 'PagesEditController@execute', 'as' => 'pagesEdit']);
 
     });
 
+    // admin/portfolios
     Route::group(['prefix' => 'portfolios'], function () {
 
         Route::get('/', ['uses' => 'PortfolioController@execute', 'as' => 'portfolio']);
@@ -49,6 +56,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
 
     });
 
+    // admin/services
     Route::group(['prefix' => 'services'], function () {
 
         Route::get('/', ['uses' => 'ServiceController@execute', 'as' => 'services']);
@@ -58,3 +66,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'auth'], function () {
     });
 
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
